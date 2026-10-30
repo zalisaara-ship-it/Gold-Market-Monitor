@@ -1,0 +1,819 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Gold Market Monitor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Instrument+Serif&display=swap">
+<style>
+/* Layout: sticky top bar with page tabs; overview is a 12-column widget grid (price hero full width, chart 8 / side cards 4); one column on phones. */
+:root {
+  --ivory: #FBF8F0;
+  --cream: #F4EEDF;
+  --champagne: #C9AA6B;
+  --gold-deep: #85651F;
+  --beige: #E7DDC8;
+  --warm-white: #FFFDF8;
+  --charcoal: #2A2723;
+  --muted: #6C6457;
+  --line: #E9E0CC;
+  --up: #2B7550;
+  --up-bg: #E6F1EA;
+  --down: #AE4036;
+  --down-bg: #F8E7E4;
+  --warn: #8A5F0C;
+  --warn-bg: #FBF0D4;
+  --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --shadow: 0 1px 2px rgba(70, 52, 14, .05), 0 10px 28px rgba(70, 52, 14, .06);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background-color: var(--ivory);
+  background-image: radial-gradient(900px 380px at 50% -160px, #F5E9C8 0%, rgba(245, 233, 200, 0) 70%);
+  background-repeat: no-repeat;
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--ivory); }
+a { color: var(--gold-deep); text-underline-offset: 3px; }
+a:hover { color: var(--charcoal); }
+:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 2px; border-radius: 6px; }
+h1, h2, h3, p { margin: 0; }
+.gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+/* top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgba(251, 248, 240, .94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding-block: 10px 8px; }
+.brand { display: flex; align-items: baseline; gap: 8px; font-family: var(--font-display); font-size: 24px; letter-spacing: .01em; }
+.brand small { font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: .12em; color: var(--gold-deep); border: 1px solid var(--champagne); border-radius: 999px; padding: 1px 8px; }
+nav { display: flex; gap: 4px; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+nav::-webkit-scrollbar { display: none; }
+nav a { text-decoration: none; color: var(--muted); font-weight: 600; font-size: 14px; padding: 7px 14px; border-radius: 999px; white-space: nowrap; }
+nav a:hover { color: var(--charcoal); background: var(--cream); }
+nav a[aria-current="page"] { color: var(--charcoal); background: var(--beige); }
+
+main { padding-block: 26px 12px; display: flex; flex-direction: column; gap: 22px; }
+.page-h { display: flex; flex-direction: column; gap: 4px; }
+.page-h h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(32px, 5vw, 44px); line-height: 1.08; text-wrap: balance; }
+.page-h p { color: var(--muted); max-width: 62ch; }
+
+/* cards and grid */
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 20px; grid-auto-flow: dense; }
+.cell { grid-column: span var(--span, 12); min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.cell > .card { flex: 1; }
+.card { background: var(--warm-white); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 22px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-deep); }
+.sub { color: var(--muted); font-size: 13px; }
+.sub a { color: inherit; }
+
+/* hero */
+.hero { gap: 18px; }
+.hero-main { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px 32px; }
+.price { font-family: var(--font-display); font-size: clamp(54px, 11vw, 92px); line-height: .95; letter-spacing: -.01em; }
+.price small { font-family: var(--font-body); font-size: 18px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-left: 6px; }
+.chg { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 15px; }
+.chg.up { background: var(--up-bg); color: var(--up); }
+.chg.down { background: var(--down-bg); color: var(--down); }
+.chg.flat { background: var(--cream); color: var(--muted); }
+.hero-side { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.formula { border-top: 1px solid var(--line); padding-top: 14px; color: var(--muted); font-size: 13px; }
+
+.chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; border-radius: 999px; padding: 4px 11px; background: var(--cream); color: var(--charcoal); border: 1px solid var(--line); }
+.chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.chip.live::before { background: var(--up); }
+.chip.delayed::before { background: var(--champagne); }
+.chip.stale { background: var(--warn-bg); color: var(--warn); border-color: #EBD59A; }
+.chip.stale::before { background: var(--warn); }
+
+.banner { background: var(--warn-bg); border: 1px solid #EBD59A; color: #5E4208; border-radius: 16px; padding: 12px 16px; font-size: 14px; }
+.banner strong { font-weight: 700; }
+
+/* purity */
+.purity { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pcard { background: var(--cream); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pcard .k { font-weight: 700; letter-spacing: .04em; }
+.pcard .v { font-family: var(--font-display); font-size: 30px; line-height: 1.1; }
+.pcard .f { font-size: 12.5px; color: var(--muted); }
+
+/* controls */
+.seg { display: inline-flex; background: var(--cream); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button { font: inherit; font-size: 13px; font-weight: 700; color: var(--muted); background: none; border: 0; padding: 6px 13px; border-radius: 999px; cursor: pointer; }
+.seg button:hover { color: var(--charcoal); }
+.seg button[aria-pressed="true"] { background: var(--warm-white); color: var(--charcoal); box-shadow: 0 1px 3px rgba(70, 52, 14, .15); }
+.btn { font: inherit; font-weight: 700; font-size: 14px; border-radius: 999px; padding: 9px 18px; cursor: pointer; border: 1px solid var(--charcoal); background: var(--charcoal); color: var(--ivory); }
+.btn:hover { background: #46413A; }
+.btn.ghost { background: transparent; color: var(--charcoal); border-color: var(--beige); }
+.btn.ghost:hover { background: var(--cream); }
+.btn.small { padding: 5px 12px; font-size: 13px; }
+.btn.danger { color: var(--down); border-color: #E6C2BD; background: transparent; }
+input, select { font: inherit; color: var(--charcoal); background: var(--warm-white); border: 1px solid var(--beige); border-radius: 12px; padding: 9px 12px; min-width: 0; }
+label { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 5px; }
+.check { flex-direction: row; align-items: center; gap: 8px; color: var(--charcoal); font-weight: 500; font-size: 14px; }
+.check input { width: 18px; height: 18px; accent-color: var(--gold-deep); }
+
+/* chart */
+.chart-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.chart-fig { display: flex; flex-direction: column; gap: 2px; }
+.chart-fig .big { font-family: var(--font-display); font-size: 30px; line-height: 1.1; }
+.chart-box { position: relative; height: 300px; }
+.chart-box.tall { height: 380px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.stat { background: var(--cream); border-radius: 14px; padding: 10px 14px; display: flex; flex-direction: column; }
+.stat span { font-size: 12px; color: var(--muted); font-weight: 600; }
+.stat b { font-size: 17px; }
+.up-t { color: var(--up); }
+.down-t { color: var(--down); }
+
+/* lists */
+.news { display: flex; flex-direction: column; }
+.item { padding-block: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.item:first-child { border-top: 0; padding-top: 0; }
+.item a.t { color: var(--charcoal); font-weight: 600; text-decoration: none; font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
+.item a.t:hover { color: var(--gold-deep); text-decoration: underline; }
+.item p { color: var(--muted); font-size: 14px; max-width: 75ch; }
+.meta { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; background: var(--cream); color: var(--gold-deep); border-radius: 999px; padding: 2px 9px; }
+.summary-p { display: flex; flex-direction: column; gap: 10px; font-size: 15.5px; }
+.empty { border: 1px dashed var(--beige); border-radius: 16px; padding: 18px; color: var(--muted); font-size: 14px; background: var(--ivory); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.empty b { color: var(--charcoal); }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; }
+th, td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.rules { display: flex; flex-direction: column; }
+.rule { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding-block: 12px; border-top: 1px solid var(--line); }
+.rule:first-child { border-top: 0; }
+.form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.facts { display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.facts li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; border-top: 1px solid var(--line); padding-top: 10px; }
+.facts li:first-child { border-top: 0; padding-top: 0; }
+.kind { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; border-radius: 6px; padding: 2px 7px; }
+.kind.fact { background: var(--up-bg); color: var(--up); }
+.kind.view { background: var(--warn-bg); color: var(--warn); }
+
+/* layout editing */
+.editbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; background: var(--cream); border-radius: 12px; padding: 6px 10px; font-size: 13px; font-weight: 600; }
+.editbar span { flex: 1; min-width: 80px; }
+.hiddenlist { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+footer { padding-block: 22px 40px; color: var(--muted); font-size: 12.5px; max-width: 80ch; display: flex; flex-direction: column; gap: 6px; }
+
+.toast { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--charcoal); color: var(--ivory); padding: 11px 18px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); font-weight: 600; font-size: 14px; max-width: min(92vw, 520px); }
+
+@media (max-width: 900px) {
+  .cell { grid-column: span 12; }
+  .two { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .purity { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card { padding: 18px; border-radius: 20px; }
+  .chart-box { height: 250px; }
+  .chart-box.tall { height: 300px; }
+  .brand { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header class="top">
+  <div class="bar gutter wrap">
+    <div class="brand">Gold Market Monitor <small>MYR</small></div>
+    <nav id="nav" aria-label="Pages">
+      <a href="#overview" data-page="overview">Overview</a>
+      <a href="#charts" data-page="charts">Charts</a>
+      <a href="#news" data-page="news">News</a>
+      <a href="#insights" data-page="insights">Insights</a>
+      <a href="#alerts" data-page="alerts">Alerts</a>
+    </nav>
+  </div>
+</header>
+<div class="gutter">
+  <div class="wrap">
+    <main id="view" aria-live="polite"></main>
+    <footer>
+      <p><strong>How the numbers are made.</strong> RM per gram = spot gold in US dollars per troy ounce × USD/MYR ÷ 31.1034768 grams per ounce. Purity values multiply that by the fineness (0.9999, 0.999, 0.916, 0.75). They are estimated metal values, not retail quotations; jewellers and dealers add premiums, making charges and their own spreads.</p>
+      <p>For history charts, each gold close is converted at the most recent published USD/MYR rate on or before that day. This page reports market data and headlines. It does not predict prices or recommend buying or selling.</p>
+    </footer>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var OZ = 31.1034768;
+  var TZ = 'Asia/Kuala_Lumpur';
+  var PURITIES = [['999.9', 0.9999], ['999', 0.999], ['916', 0.916], ['750', 0.75]];
+  var PAGES = ['overview', 'charts', 'news', 'insights', 'alerts'];
+  var PERIODS = [['1W', 7], ['1M', 30], ['3M', 91], ['6M', 182], ['1Y', 365]];
+  var TOPICS = { all: 'All', gold: 'Gold', fed: 'Fed & rates', inflation: 'Inflation', geopolitics: 'Geopolitics', myr: 'USD/MYR' };
+  var WIDGETS = [
+    { id: 'price', title: 'Gold price', span: 12 },
+    { id: 'purity', title: 'Purity values', span: 12 },
+    { id: 'chart', title: 'Price history', span: 8 },
+    { id: 'summary', title: 'Daily summary', span: 4 },
+    { id: 'news', title: 'Latest news', span: 8 },
+    { id: 'alerts', title: 'Alerts', span: 4 },
+    { id: 'status', title: 'Data and update status', span: 12 }
+  ];
+  var REFRESH_MS = 5 * 60 * 1000;
+
+  var S = { latest: null, hist: null, news: null, ticks: null, errors: {}, page: 'overview', period: '1M', sma: false, topic: 'all', edit: false, loaded: false };
+
+  /* ---------- storage (per browser, never required) ---------- */
+  var mem = {};
+  function load(k, d) {
+    try { var v = localStorage.getItem('gmm.' + k); if (v) return JSON.parse(v); } catch (e) {}
+    return k in mem ? mem[k] : d;
+  }
+  function save(k, v) {
+    mem[k] = v;
+    try { localStorage.setItem('gmm.' + k, JSON.stringify(v)); } catch (e) {}
+  }
+
+  /* ---------- helpers ---------- */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
+  function n2(v, d) { d = d == null ? 2 : d; return Number(v).toLocaleString('en-MY', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function rm(v, d) { return 'RM ' + n2(v, d); }
+  function sg(v) { return v > 0 ? '+' : v < 0 ? '−' : ''; }
+  function signed(v, d) { return sg(v) + n2(Math.abs(v), d); }
+  function cls(v) { return v > 0 ? 'up' : v < 0 ? 'down' : 'flat'; }
+  function isDay(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s || ''); }
+  function myrg(usd, fx) { return usd * fx / OZ; }
+  function fmtDay(s) {
+    if (isDay(s)) return new Date(s + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    var t = Date.parse(s);
+    return isNaN(t) ? '' : new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: TZ });
+  }
+  function shortDay(s) { return new Date(s + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }); }
+  function fmtDT(iso) {
+    var t = Date.parse(iso);
+    if (isNaN(t)) return '';
+    return new Date(t).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ }) + ' MYT';
+  }
+  function ago(iso) {
+    var m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+    if (isNaN(m)) return '';
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    if (m < 60 * 36) return Math.round(m / 60) + ' h ago';
+    return Math.round(m / 1440) + ' days ago';
+  }
+  function whenLabel(it) {
+    if (it.publishedAt) return fmtDT(it.publishedAt) + ' · ' + ago(it.publishedAt);
+    if (it.publishedDate) return fmtDay(it.publishedDate);
+    return '';
+  }
+  function todayKL() { return new Date().toLocaleDateString('en-CA', { timeZone: TZ }); }
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = msg; el.hidden = false;
+    clearTimeout(toast.t);
+    toast.t = setTimeout(function () { el.hidden = true; }, 5200);
+  }
+
+  /* ---------- derived data ---------- */
+  function spot() {
+    var g = S.latest && S.latest.gold, f = S.latest && S.latest.fx;
+    if (!g || !f || !(g.usdPerOz > 0) || !(f.usdMyr > 0)) return null;
+    var price = myrg(g.usdPerOz, f.usdMyr);
+    var prev = g.prevUsdPerOz > 0 ? myrg(g.prevUsdPerOz, f.usdMyr) : null;
+    return { g: g, f: f, price: price, prev: prev, chg: prev == null ? null : price - prev, pct: prev == null ? null : (price / prev - 1) * 100 };
+  }
+  function goldStatus(g) {
+    var age = g.asOf && !isDay(g.asOf) ? (Date.now() - Date.parse(g.asOf)) / 60000 : null;
+    if (g.status === 'live' && (age == null || age <= 10)) return { kind: 'live', label: 'Live' };
+    if (g.status === 'delayed' && age != null && age <= 180) return { kind: 'delayed', label: 'Delayed · ' + (g.delayNote || 'about 15 to 30 minutes') };
+    if (g.status === 'delayed' && age != null) return { kind: 'stale', label: 'Stale · updated ' + ago(g.asOf) };
+    return { kind: 'last', label: 'Last available price' };
+  }
+  function series() {
+    var gold = (S.hist && S.hist.gold && S.hist.gold.points) || [];
+    var fx = (S.hist && S.hist.fx && S.hist.fx.points) || [];
+    var out = [], j = -1;
+    for (var i = 0; i < gold.length; i++) {
+      while (j + 1 < fx.length && fx[j + 1].d <= gold[i].d) j++;
+      if (j >= 0) out.push({ d: gold[i].d, usd: gold[i].c, fx: fx[j].r, v: myrg(gold[i].c, fx[j].r) });
+    }
+    return out;
+  }
+  function cutoff(last, days) { return new Date(Date.parse(last + 'T12:00:00Z') - days * 864e5).toISOString().slice(0, 10); }
+  function windowed(rows, days) {
+    if (!rows.length) return [];
+    var cut = cutoff(rows[rows.length - 1].d, days);
+    return rows.filter(function (r) { return r.d >= cut; });
+  }
+  function covers(rows, days) {
+    if (!rows.length) return false;
+    var cut = cutoff(rows[rows.length - 1].d, days);
+    return Date.parse(rows[0].d) <= Date.parse(cut) + 6 * 864e5;
+  }
+  function sma(vals, n) {
+    var out = [], sum = 0;
+    for (var i = 0; i < vals.length; i++) { sum += vals[i]; if (i >= n) sum -= vals[i - n]; out.push(i >= n - 1 ? sum / n : null); }
+    return out;
+  }
+  function avg(a) { return a.reduce(function (x, y) { return x + y; }, 0) / a.length; }
+
+  /* ---------- data loading ---------- */
+  // Verified snapshot embedded at build time. Used only when the data files cannot be fetched.
+  var SEED = {"latest.json":{"mode":"snapshot","generatedAt":"2026-10-26T06:45:00Z","note":"Hand-verified snapshot from pages read on 26 Oct 2026. The scheduled updater replaces this file with automatic data once it is deployed.","gold":{"usdPerOz":3999.92,"prevUsdPerOz":3993.81,"changeBasis":"the price 24 hours earlier (+US$6.11 per MetalCharts)","changeLabel":"over 24 hours","asOf":"2026-10-25","asOfPrecision":"date","source":"MetalCharts spot gold page","sourceUrl":"https://metalcharts.org/gold-price","status":"last-available","delayNote":"snapshot, not refreshing"},"fx":{"usdMyr":4.0848,"prev":4.0823,"asOf":"2026-10-23","source":"Bank Negara Malaysia noon interbank rate, as listed by money.com.my","sourceUrl":"https://money.com.my/tools/exchange-rate/usd-to-myr","basis":"previous fixing (22 Oct)"},"errors":[]},"history.json":{"generatedAt":"2026-10-26T06:45:00Z","gold":null,"fx":{"source":"Bank Negara Malaysia noon interbank rate, as listed by money.com.my (10 most recent fixings only)","url":"https://money.com.my/tools/exchange-rate/usd-to-myr","points":[{"d":"2026-10-12","r":4.0823},{"d":"2026-10-13","r":4.086},{"d":"2026-10-14","r":4.082},{"d":"2026-10-15","r":4.0815},{"d":"2026-10-16","r":4.0835},{"d":"2026-10-19","r":4.0815},{"d":"2026-10-20","r":4.083},{"d":"2026-10-21","r":4.0817},{"d":"2026-10-22","r":4.0823},{"d":"2026-10-23","r":4.0848}]}},"news.json":{"fetchedAt":"2026-10-26T06:45:00Z","source":"Three articles read in full on 26 Oct 2026. The scheduled updater replaces this list with a live feed.","items":[{"title":"Gold Falls Below $4,000 as Market Focuses on Fed and September PCE After Consecutive Adjustments","publisher":"TradingKey","publishedDate":"2026-10-26","url":"https://www.tradingkey.com/analysis/commodities/metal/262238288-gold-below-4000-adjustments-fed-september-pce-focus-tradingkey","summary":"Spot gold slipped under $4,000 after its biggest weekly drop since June. The article points to roughly 78% odds of another Fed hike in December (CME FedWatch), oil-linked inflation worries, and forced selling. The Fed meets 27 to 28 October and September PCE is due 29 October.","topics":["gold","fed","inflation"]},{"title":"Gold steadies near one-week low as oil-driven inflation fears grow","publisher":"Reuters via Kitco News","publishedDate":"2026-10-21","url":"https://www.kitco.com/news/off-the-wire/2026-10-21/gold-steadies-near-one-week-low-oil-driven-inflation-fears-grow","summary":"Higher oil prices tied to Middle East tensions revived inflation worries and pushed traders toward expecting Fed rate hikes, which weighs on gold because it pays no interest.","topics":["gold","fed","inflation","geopolitics"]},{"title":"Ringgit Forecast Revised To 4.00 As Geopolitical Risks Persist","publisher":"Business Today","publishedAt":"2026-10-03T11:35:24+08:00","url":"https://www.businesstoday.com.my/2026/10/03/ringgit-forecast-revised-to-4-00-as-geopolitical-risks-persist/","summary":"Kenanga Research now expects the ringgit at RM4.00 per US dollar by end-2026 (previously RM3.95), citing a stronger dollar, higher US yields and geopolitical tension. It expects one more Fed hike late this year.","topics":["myr","fed","geopolitics"]}]},"ticks.json":{"points":[]}};
+  function getJson(name) {
+    var base = location.pathname.replace(/\/[^\/]*$/, '/');
+    var tries = ['data/' + name, './data/' + name, base + 'data/' + name, location.pathname.replace(/\/?$/, '/') + 'data/' + name];
+    var seen = {}, list = tries.filter(function (u) { if (seen[u]) return false; seen[u] = 1; return true; });
+    function next(i, lastErr) {
+      if (i >= list.length) return Promise.reject(lastErr || new Error('not found'));
+      return fetch(list[i], { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).catch(function (e) { return next(i + 1, e); });
+    }
+    return next(0);
+  }
+  function loadAll() {
+    var jobs = [['latest', 'latest.json'], ['hist', 'history.json'], ['news', 'news.json'], ['ticks', 'ticks.json']];
+    return Promise.all(jobs.map(function (j) {
+      return getJson(j[1]).then(function (d) { S[j[0]] = d; delete S.errors[j[0]]; }).catch(function (e) {
+        if (!S[j[0]] && SEED[j[1]]) { S[j[0]] = SEED[j[1]]; delete S.errors[j[0]]; }
+        else if (!S[j[0]]) S.errors[j[0]] = String(e.message || e);
+      });
+    })).then(function () { S.loaded = true; });
+  }
+
+  /* ---------- alerts ---------- */
+  function alertState() {
+    var a = load('alerts', null);
+    if (!a || typeof a !== 'object') a = { rules: [], log: [], daily: false, lastDaily: '' };
+    a.rules = a.rules || []; a.log = a.log || [];
+    return a;
+  }
+  function moveOver(minutes) {
+    var pts = (S.ticks && S.ticks.points) || [];
+    if (pts.length < 2) return null;
+    var lastP = pts[pts.length - 1], t1 = Date.parse(lastP.t), base = null;
+    for (var i = pts.length - 2; i >= 0; i--) { if (t1 - Date.parse(pts[i].t) >= minutes * 60000) { base = pts[i]; break; } }
+    if (!base || t1 - Date.parse(base.t) > minutes * 60000 * 2.5) return null;
+    return { pct: (lastP.usd / base.usd - 1) * 100, from: base.t };
+  }
+  function notify(title, body) {
+    try { if (typeof Notification !== 'undefined' && Notification.permission === 'granted') new Notification(title, { body: body }); } catch (e) {}
+  }
+  function fire(A, text) {
+    A.log.unshift({ t: Date.now(), text: text });
+    A.log = A.log.slice(0, 20);
+    toast(text); notify('Gold alert', text);
+  }
+  function checkAlerts() {
+    var s = spot();
+    if (!s) return;
+    var A = alertState(), changed = false;
+    A.rules.forEach(function (r) {
+      if (!r.on) return;
+      if (r.type === 'above' || r.type === 'below') {
+        var hit = r.type === 'above' ? s.price >= r.value : s.price <= r.value;
+        if (hit && !r.fired) { r.fired = true; changed = true; fire(A, 'Gold is ' + rm(s.price) + '/g, ' + (r.type === 'above' ? 'at or above' : 'at or below') + ' your ' + rm(r.value) + ' target.'); }
+        else if (!hit && r.fired) { r.fired = false; changed = true; }
+      } else if (r.type === 'move') {
+        var m = moveOver(60);
+        if (m && Math.abs(m.pct) >= r.value && (!r.last || Date.now() - r.last > 6 * 3600e3)) {
+          r.last = Date.now(); changed = true;
+          fire(A, 'Gold moved ' + signed(m.pct) + '% in about an hour (your alert: ' + n2(r.value) + '%).');
+        }
+      }
+    });
+    if (A.daily && A.lastDaily !== todayKL()) {
+      A.lastDaily = todayKL(); changed = true;
+      var text = summarySentences().join(' ');
+      A.log.unshift({ t: Date.now(), text: 'Daily summary: ' + text }); A.log = A.log.slice(0, 20);
+      notify('Gold daily summary', text);
+    }
+    if (changed) save('alerts', A);
+  }
+
+  /* ---------- summary (templated from the data on this page; no causes are asserted) ---------- */
+  function topNews() {
+    var items = (S.news && S.news.items) || [];
+    return items.length ? items[0] : null;
+  }
+  function summarySentences() {
+    var s = spot(), out = [];
+    if (!s) return ['Price data is not available right now.'];
+    var dir = s.pct == null ? '' : (s.pct > 0 ? ', up ' : s.pct < 0 ? ', down ' : ', unchanged ') + (s.pct === 0 ? '' : n2(Math.abs(s.pct)) + '% ') + (s.g.changeLabel || 'from the previous close');
+    out.push('Gold is ' + rm(s.price) + ' per gram' + dir + ', based on US$' + n2(s.g.usdPerOz) + ' per ounce and USD/MYR ' + n2(s.f.usdMyr, 4) + '.');
+    var rows = series();
+    if (rows.length >= 8 && covers(rows, 7)) {
+      var w = windowed(rows, 7), a = w[0].v, b = rows[rows.length - 1].v;
+      var line = 'Over the past week it moved ' + signed((b / a - 1) * 100) + '% (' + signed(b - a) + ' RM per gram)';
+      if (rows.length >= 50) { var m50 = avg(rows.slice(-50).map(function (r) { return r.v; })); line += ' and sits ' + (b >= m50 ? 'above' : 'below') + ' its 50-day average'; }
+      out.push(line + '.');
+    }
+    var n = topNews();
+    if (n) out.push('Latest headline: “' + n.title + '” (' + n.publisher + ').');
+    return out;
+  }
+
+  /* ---------- widgets ---------- */
+  function emptyBox(title, text, action) {
+    return '<div class="empty"><b>' + esc(title) + '</b><span>' + esc(text) + '</span>' + (action || '') + '</div>';
+  }
+  function historyEmpty() {
+    var snap = S.latest && S.latest.mode === 'snapshot';
+    return emptyBox('Gold price history is not loaded',
+      snap ? 'This preview holds only figures that were verified directly, so no history line is drawn rather than guessing one. Once the updater is deployed it downloads about 13 months of daily XAU/USD closes and this chart fills in.'
+           : 'The updater could not download daily gold closes. The Data and update status card on the Overview lists the source problem.');
+  }
+
+  function wPrice() {
+    var s = spot();
+    if (!s) return '<section class="card hero"><div class="eyebrow">Spot gold · MYR per gram</div>' + emptyBox('Price unavailable', 'The price files could not be loaded (' + esc(Object.keys(S.errors).join(', ') || 'no data') + '). Reload to try again.') + '</section>';
+    var st = goldStatus(s.g);
+    var chg = s.chg == null
+      ? '<span class="chg flat">Change unavailable</span>'
+      : '<span class="chg ' + cls(s.chg) + '">' + (s.chg > 0 ? '▲' : s.chg < 0 ? '▼' : '▬') + ' ' + signed(s.chg) + ' RM · ' + signed(s.pct) + '%</span>';
+    var asof = s.g.asOfPrecision === 'date' || isDay(s.g.asOf) ? fmtDay(s.g.asOf) + ' (time not published)' : fmtDT(s.g.asOf);
+    return '<section class="card hero">' +
+      '<div class="card-h"><div class="eyebrow">Spot gold · MYR per gram</div><span class="chip ' + st.kind + '">' + esc(st.label) + '</span></div>' +
+      '<div class="hero-main">' +
+        '<div><div class="price">' + esc(rm(s.price)) + '<small>/g</small></div></div>' +
+        '<div class="hero-side">' + chg +
+          '<span class="sub">' + (s.chg == null ? '' : esc('vs ' + (s.g.changeBasis || 'previous close')) + '<br>') + 'Price as of ' + esc(asof) + '</span>' +
+          '<span class="sub">Source: <a href="' + esc(safeUrl(s.g.sourceUrl)) + '" target="_blank" rel="noopener">' + esc(s.g.source) + '</a></span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="formula">US$' + n2(s.g.usdPerOz) + ' per troy ounce × USD/MYR ' + n2(s.f.usdMyr, 4) + ' (' + esc(fmtDay(s.f.asOf)) + ') ÷ 31.1035 g. The RM change is the US-dollar move converted at the latest USD/MYR rate.</div>' +
+    '</section>';
+  }
+
+  function wPurity() {
+    var s = spot();
+    var body = !s ? emptyBox('Unavailable', 'Needs both a gold price and a USD/MYR rate.') :
+      '<div class="purity">' + PURITIES.map(function (p) {
+        var v = s.price * p[1], c = s.chg == null ? null : s.chg * p[1];
+        return '<div class="pcard"><span class="k">' + p[0] + '</span><span class="v">' + esc(rm(v)) + '</span>' +
+          '<span class="f">per gram · ×' + p[1] + (c == null ? '' : ' · <span class="' + (c >= 0 ? 'up-t' : 'down-t') + '">' + signed(c) + '</span>') + '</span></div>';
+      }).join('') + '</div>';
+    return '<section class="card"><div class="card-h"><div class="eyebrow">Purity values</div><span class="sub">Estimated metal value, not a retail quotation</span></div>' + body + '</section>';
+  }
+
+  function periodButtons() {
+    return '<div class="seg" role="group" aria-label="Period">' + PERIODS.map(function (p) {
+      return '<button type="button" data-act="period" data-v="' + p[0] + '" aria-pressed="' + (S.period === p[0]) + '">' + p[0] + '</button>';
+    }).join('') + '</div>';
+  }
+  function periodDays() { return PERIODS.filter(function (p) { return p[0] === S.period; })[0][1]; }
+
+  function chartHead(rows, days) {
+    var a = rows[0], b = rows[rows.length - 1], chg = b.v - a.v, p = (b.v / a.v - 1) * 100;
+    var note = covers(rows, days) ? '' : ' <span class="sub">History covers only ' + esc(fmtDay(a.d)) + ' onward.</span>';
+    return '<div class="chart-fig"><span class="sub">' + esc(S.period) + ' change · ' + esc(shortDay(a.d)) + ' to ' + esc(shortDay(b.d)) + '</span>' +
+      '<span class="big ' + (chg >= 0 ? 'up-t' : 'down-t') + '">' + signed(chg) + ' RM · ' + signed(p) + '%</span>' + note + '</div>';
+  }
+  function wChart() {
+    var rows = series(), body;
+    if (!rows.length) body = historyEmpty();
+    else {
+      var w = windowed(rows, periodDays());
+      body = '<div class="chart-top">' + chartHead(w, periodDays()) + periodButtons() + '</div><div class="chart-box"><canvas id="chart-main" role="img" aria-label="Gold price history in ringgit per gram"></canvas></div>';
+    }
+    return '<section class="card"><div class="card-h"><div class="eyebrow">Price history · RM per gram</div><a href="#charts" data-page-link="charts" class="sub">Detailed charts</a></div>' + body + '</section>';
+  }
+
+  function wSummary() {
+    return '<section class="card"><div class="eyebrow">Daily summary</div><div class="summary-p">' +
+      summarySentences().map(function (t) { return '<p>' + esc(t) + '</p>'; }).join('') +
+      '</div><p class="sub">Built from the figures and headlines on this page. It states what moved, not why.</p></section>';
+  }
+
+  function newsList(items, withSummary) {
+    if (!items.length) return emptyBox('No headlines loaded', 'The news file is empty or could not be read.');
+    return '<div class="news">' + items.map(function (it) {
+      return '<article class="item"><a class="t" href="' + esc(safeUrl(it.url)) + '" target="_blank" rel="noopener">' + esc(it.title) + '</a>' +
+        '<div class="meta"><span>' + esc(it.publisher) + '</span><span>' + esc(whenLabel(it)) + '</span></div>' +
+        (withSummary && it.summary ? '<p>' + esc(it.summary) + '</p>' : '') +
+        (withSummary ? '<div class="tags">' + (it.topics || []).map(function (t) { return '<span class="tag">' + esc(TOPICS[t] || t) + '</span>'; }).join('') + '</div>' : '') + '</article>';
+    }).join('') + '</div>';
+  }
+  function wNews() {
+    var items = ((S.news && S.news.items) || []).slice(0, 5);
+    return '<section class="card"><div class="card-h"><div class="eyebrow">Latest relevant news</div><a href="#news" data-page-link="news" class="sub">All news</a></div>' + newsList(items, false) + '</section>';
+  }
+
+  function wAlerts() {
+    var A = alertState(), active = A.rules.filter(function (r) { return r.on; }).length;
+    var recent = A.log.slice(0, 3).map(function (l) { return '<li><span>' + esc(l.text) + '</span><span class="sub">' + esc(ago(new Date(l.t).toISOString())) + '</span></li>'; }).join('');
+    var body = recent ? '<ul class="facts">' + recent + '</ul>' : emptyBox(active ? 'No alerts have fired' : 'No alerts set', active ? active + ' alert' + (active > 1 ? 's' : '') + ' watching the price while this page is open.' : 'Set a target price or a sudden-move alert.');
+    return '<section class="card"><div class="card-h"><div class="eyebrow">Alerts</div><a href="#alerts" data-page-link="alerts" class="sub">' + (active ? active + ' active' : 'Set one up') + '</a></div>' + body + '</section>';
+  }
+
+  function srcRow(label, src, url, when, extra) {
+    return '<tr><td><b>' + esc(label) + '</b></td><td>' + (url ? '<a href="' + esc(safeUrl(url)) + '" target="_blank" rel="noopener">' + esc(src) + '</a>' : esc(src)) + '</td><td>' + when + '</td><td>' + (extra || '') + '</td></tr>';
+  }
+  function wStatus() {
+    var L = S.latest, rows = '';
+    if (L && L.gold) { var st = goldStatus(L.gold); rows += srcRow('Gold spot', L.gold.source, L.gold.sourceUrl, esc(isDay(L.gold.asOf) ? fmtDay(L.gold.asOf) : fmtDT(L.gold.asOf)), '<span class="chip ' + st.kind + '">' + esc(st.label) + '</span>'); }
+    else rows += srcRow('Gold spot', 'Not loaded', '', '', '');
+    if (L && L.fx) rows += srcRow('USD/MYR', L.fx.source, L.fx.sourceUrl, esc(fmtDay(L.fx.asOf)), '<span class="chip">Daily fixing</span>');
+    var hg = S.hist && S.hist.gold;
+    rows += hg && hg.points && hg.points.length ? srcRow('Gold history', hg.source, hg.url, esc('to ' + fmtDay(hg.points[hg.points.length - 1].d)), esc(hg.points.length + ' daily closes')) : srcRow('Gold history', 'Not loaded', '', '', '');
+    rows += srcRow('News', (S.news && S.news.source) || 'Not loaded', '', S.news && S.news.fetchedAt ? esc(fmtDT(S.news.fetchedAt)) : '', '');
+    var errs = (L && L.errors) || [];
+    var note = L && L.mode === 'snapshot' ? '<div class="banner"><strong>Preview snapshot.</strong> ' + esc(L.note || '') + '</div>' : '';
+    return '<section class="card"><div class="card-h"><div class="eyebrow">Data and update status</div><span class="sub">Files written ' + esc(L && L.generatedAt ? fmtDT(L.generatedAt) : 'at an unknown time') + '</span></div>' + note +
+      '<div class="tbl-wrap"><table><thead><tr><th>Item</th><th>Source</th><th>As of</th><th>State</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      (errs.length ? '<p class="sub"><b>Source problems on the last run:</b> ' + errs.map(esc).join('; ') + '</p>' : '') +
+      '<p class="sub">This page reloads its data every 5 minutes while open. Prices are never labelled live unless the source says so.</p></section>';
+  }
+
+  var WFN = { price: wPrice, purity: wPurity, chart: wChart, summary: wSummary, news: wNews, alerts: wAlerts, status: wStatus };
+
+  /* ---------- pages ---------- */
+  function layout() {
+    var l = load('layout', null) || {};
+    var order = (l.order || []).filter(function (id) { return WFN[id]; });
+    WIDGETS.forEach(function (w) { if (order.indexOf(w.id) < 0) order.push(w.id); });
+    return { order: order, hidden: (l.hidden || []).filter(function (id) { return WFN[id]; }) };
+  }
+  function widget(id) { return WIDGETS.filter(function (w) { return w.id === id; })[0]; }
+
+  function pageOverview() {
+    var L = layout(), cells = '';
+    var banner = S.latest && S.latest.mode === 'snapshot' ? '<div class="banner"><strong>Preview snapshot.</strong> These figures were checked by hand on ' + esc(fmtDay((S.latest.generatedAt || '').slice(0, 10))) + ' and are not refreshing. Gold price history needs the scheduled updater.</div>' : '';
+    L.order.forEach(function (id, i) {
+      if (L.hidden.indexOf(id) >= 0) return;
+      var w = widget(id), bar = '';
+      if (S.edit) bar = '<div class="editbar"><span>' + esc(w.title) + '</span><button class="btn ghost small" data-act="move" data-id="' + id + '" data-d="-1" aria-label="Move ' + esc(w.title) + ' earlier">↑</button><button class="btn ghost small" data-act="move" data-id="' + id + '" data-d="1" aria-label="Move ' + esc(w.title) + ' later">↓</button><button class="btn ghost small" data-act="hide" data-id="' + id + '">Hide</button></div>';
+      cells += '<div class="cell" style="--span:' + w.span + '">' + bar + WFN[id]() + '</div>';
+    });
+    var hidden = L.hidden.map(function (id) { return '<button class="btn ghost small" data-act="show" data-id="' + id + '">+ ' + esc(widget(id).title) + '</button>'; }).join('');
+    var tools = '<div class="hiddenlist"><button class="btn ghost small" data-act="edit" aria-pressed="' + S.edit + '">' + (S.edit ? 'Done' : 'Arrange widgets') + '</button>' +
+      (S.edit ? '<button class="btn ghost small" data-act="reset">Reset layout</button>' : '') + (S.edit && hidden ? '<span class="sub">Hidden:</span>' + hidden : '') + '</div>';
+    return banner + tools + '<div class="grid">' + cells + '</div>';
+  }
+
+  function pageCharts() {
+    var rows = series(), fxp = (S.hist && S.hist.fx && S.hist.fx.points) || [], days = periodDays();
+    var head = '<div class="page-h"><h1>Charts</h1><p>Gold in ringgit per gram, built from daily XAU/USD closes and the USD/MYR rate. Hover or touch a line for the day’s value.</p></div>';
+    var gold;
+    if (!rows.length) gold = '<section class="card">' + historyEmpty() + '</section>';
+    else {
+      var w = windowed(rows, days), vals = w.map(function (r) { return r.v; });
+      var hi = Math.max.apply(null, vals), lo = Math.min.apply(null, vals);
+      gold = '<section class="card"><div class="chart-top">' + chartHead(w, days) + '<div class="form-row">' + periodButtons() +
+        '<label class="check"><input type="checkbox" id="sma-toggle" data-act="sma" ' + (S.sma ? 'checked' : '') + '> 20 and 50-day averages</label></div></div>' +
+        '<div class="chart-box tall"><canvas id="chart-big" role="img" aria-label="Gold price history in ringgit per gram"></canvas></div>' +
+        '<div class="stats"><div class="stat"><span>Start</span><b>' + esc(rm(w[0].v)) + '</b></div><div class="stat"><span>Latest</span><b>' + esc(rm(w[w.length - 1].v)) + '</b></div><div class="stat"><span>High</span><b>' + esc(rm(hi)) + '</b></div><div class="stat"><span>Low</span><b>' + esc(rm(lo)) + '</b></div><div class="stat"><span>Average</span><b>' + esc(rm(avg(vals))) + '</b></div></div></section>';
+    }
+    var fxw = windowed(fxp.map(function (p) { return { d: p.d, v: p.r }; }), days), fxc;
+    if (fxw.length < 2) fxc = '<section class="card"><div class="eyebrow">USD/MYR</div>' + emptyBox('Not enough USD/MYR history', 'Needs at least two daily fixings in this period.') + '</section>';
+    else {
+      var a = fxw[0].v, b = fxw[fxw.length - 1].v;
+      fxc = '<section class="card"><div class="card-h"><div class="eyebrow">USD/MYR · ringgit per US dollar</div><span class="sub">' + esc((S.hist.fx.source || '')) + '</span></div>' +
+        '<div class="chart-fig"><span class="sub">' + esc(S.period) + ' change</span><span class="big ' + (b >= a ? 'down-t' : 'up-t') + '">' + signed(b - a, 4) + ' · ' + signed((b / a - 1) * 100) + '%</span><span class="sub">A higher number means a weaker ringgit, which raises the RM price of gold for the same dollar price.</span></div>' +
+        '<div class="chart-box"><canvas id="chart-fx" role="img" aria-label="USD to MYR exchange rate"></canvas></div></section>';
+    }
+    return head + gold + fxc;
+  }
+
+  function pageNews() {
+    var items = (S.news && S.news.items) || [];
+    var shown = S.topic === 'all' ? items : items.filter(function (i) { return (i.topics || []).indexOf(S.topic) >= 0; });
+    var chips = '<div class="seg" role="group" aria-label="Topic" style="flex-wrap:wrap;border-radius:18px">' + Object.keys(TOPICS).map(function (k) {
+      return '<button type="button" data-act="topic" data-v="' + k + '" aria-pressed="' + (S.topic === k) + '">' + esc(TOPICS[k]) + '</button>';
+    }).join('') + '</div>';
+    return '<div class="page-h"><h1>News</h1><p>Headlines on gold, inflation, interest rates, the Federal Reserve, geopolitics and the ringgit. Each links to the publisher’s own article.</p></div>' +
+      '<section class="card"><div class="card-h">' + chips + '<span class="sub">' + (S.news && S.news.fetchedAt ? 'Fetched ' + esc(ago(S.news.fetchedAt)) + ' · ' : '') + esc((S.news && S.news.source) || '') + '</span></div>' + newsList(shown, true) + '</section>';
+  }
+
+  function periodChanges(rows) {
+    return PERIODS.map(function (p) {
+      if (!covers(rows, p[1])) return [p[0], null];
+      var w = windowed(rows, p[1]);
+      return [p[0], { chg: w[w.length - 1].v - w[0].v, pct: (w[w.length - 1].v / w[0].v - 1) * 100 }];
+    });
+  }
+  function pageInsights() {
+    var rows = series(), head = '<div class="page-h"><h1>Insights</h1><p>Facts calculated from the price history are labelled <span class="kind fact">Fact</span>. General background about what tends to move gold is labelled <span class="kind view">Interpretation</span> and is not a forecast.</p></div>';
+    var trend, moves;
+    if (rows.length < 20) {
+      trend = emptyBox('Trend indicators need price history', 'They are calculated from daily gold closes, which are not loaded (see the Charts page).');
+      moves = emptyBox('Significant moves need price history', 'Largest daily moves are taken from the same closes.');
+    } else {
+      var vals = rows.map(function (r) { return r.v; }), last = vals[vals.length - 1], items = '';
+      [20, 50, 200].forEach(function (n) {
+        if (vals.length >= n) { var m = avg(vals.slice(-n)); items += '<li><span>' + n + '-day average</span><span><b>' + esc(rm(m)) + '</b> · price is <b class="' + (last >= m ? 'up-t' : 'down-t') + '">' + signed((last / m - 1) * 100) + '%</b> ' + (last >= m ? 'above' : 'below') + ' it</span></li>'; }
+      });
+      if (vals.length >= 50) { var a20 = avg(vals.slice(-20)), a50 = avg(vals.slice(-50)); items += '<li><span>20-day vs 50-day average</span><span>' + (a20 >= a50 ? 'The 20-day is above the 50-day, which traders often read as upward momentum.' : 'The 20-day is below the 50-day, which traders often read as downward momentum.') + '</span></li>'; }
+      periodChanges(rows).forEach(function (c) { items += '<li><span>' + c[0] + ' change</span><span>' + (c[1] ? '<b class="' + (c[1].chg >= 0 ? 'up-t' : 'down-t') + '">' + signed(c[1].chg) + ' RM · ' + signed(c[1].pct) + '%</b>' : '<span class="sub">not enough history</span>') + '</span></li>'; });
+      trend = '<ul class="facts">' + items + '</ul>';
+      var ch = [];
+      for (var i = Math.max(1, rows.length - 180); i < rows.length; i++) ch.push({ d: rows[i].d, pct: (rows[i].v / rows[i - 1].v - 1) * 100, chg: rows[i].v - rows[i - 1].v });
+      ch.sort(function (x, y) { return Math.abs(y.pct) - Math.abs(x.pct); });
+      moves = '<ul class="facts">' + ch.slice(0, 5).map(function (c) { return '<li><span>' + esc(fmtDay(c.d)) + '</span><span><b class="' + (c.pct >= 0 ? 'up-t' : 'down-t') + '">' + signed(c.pct) + '%</b> · ' + signed(c.chg) + ' RM per gram</span></li>'; }).join('') + '</ul>';
+    }
+    var heads = ((S.news && S.news.items) || []).slice(0, 4);
+    var drivers = [
+      ['Interest rates and the Fed', 'Gold pays no interest, so higher expected rates make holding it less attractive and lower expected rates help it. Rate-hike or rate-cut expectations often matter more than the decision itself.'],
+      ['Inflation', 'Gold is often bought as a store of value when inflation is high, but if inflation pushes rate expectations up, the rate effect can outweigh it.'],
+      ['The US dollar', 'Gold is priced in dollars. A stronger dollar tends to weigh on the dollar price, and a weaker one tends to support it.'],
+      ['Geopolitics and uncertainty', 'Tension and market stress can draw money toward gold as a refuge, though forced selling in a sell-off can pull it down too.'],
+      ['USD/MYR', 'Your RM price also depends on the ringgit. If the ringgit weakens against the dollar, gold costs more in RM even when the dollar price is flat.']
+    ];
+    return head +
+      '<div class="two"><section class="card"><div class="card-h"><div class="eyebrow">Trend indicators</div><span class="kind fact">Fact</span></div>' + trend + '<p class="sub">Moving averages describe past prices. They do not predict future ones.</p></section>' +
+      '<section class="card"><div class="card-h"><div class="eyebrow">Largest daily moves · last 6 months</div><span class="kind fact">Fact</span></div>' + moves + '</section></div>' +
+      '<section class="card"><div class="card-h"><div class="eyebrow">In the headlines</div><span class="kind fact">Fact</span></div>' + newsList(heads, true) + '<p class="sub">Reasons given in headlines are the publishers’ explanations. Open the article to see the evidence behind them.</p></section>' +
+      '<section class="card"><div class="card-h"><div class="eyebrow">What usually moves gold</div><span class="kind view">Interpretation</span></div><ul class="facts">' +
+      drivers.map(function (d) { return '<li><span><b>' + esc(d[0]) + '</b></span><span style="flex-basis:70%;max-width:70ch">' + esc(d[1]) + '</span></li>'; }).join('') +
+      '</ul><p class="sub">General background, not a reading of today’s market. No one can reliably predict gold prices, and nothing here is a buy or sell signal.</p></section>';
+  }
+
+  function pageAlerts() {
+    var A = alertState(), canNotify = typeof Notification !== 'undefined', perm = canNotify ? Notification.permission : 'unsupported';
+    var permText = perm === 'granted' ? 'Browser notifications are on.' : perm === 'denied' ? 'Browser notifications are blocked for this site.' : perm === 'unsupported' ? 'Browser notifications are not available in this view.' : 'Browser notifications are off.';
+    var ticksOk = ((S.ticks && S.ticks.points) || []).length >= 2;
+    var rules = A.rules.length ? '<div class="rules">' + A.rules.map(function (r) {
+      var label = r.type === 'above' ? 'Price rises to ' + rm(r.value) + ' per gram or more' : r.type === 'below' ? 'Price falls to ' + rm(r.value) + ' per gram or less' : 'Price moves ' + n2(r.value) + '% or more within about an hour';
+      return '<div class="rule"><label class="check"><input type="checkbox" data-act="rule-toggle" data-id="' + esc(r.id) + '" ' + (r.on ? 'checked' : '') + '> ' + esc(label) + '</label><span class="sub">' + (r.fired ? 'Triggered' : r.on ? 'Watching' : 'Paused') + '</span><button class="btn danger small" data-act="rule-del" data-id="' + esc(r.id) + '">Delete</button></div>';
+    }).join('') + '</div>' : emptyBox('No alerts yet', 'Add a target price or a sudden-move alert below.');
+    var log = A.log.length ? '<ul class="facts">' + A.log.map(function (l) { return '<li><span>' + esc(l.text) + '</span><span class="sub">' + esc(ago(new Date(l.t).toISOString())) + '</span></li>'; }).join('') + '</ul><div><button class="btn ghost small" data-act="log-clear">Clear history</button></div>' : emptyBox('Nothing has fired yet', 'Triggered alerts and daily summaries are listed here.');
+    return '<div class="page-h"><h1>Alerts</h1><p>Targets and sudden-move alerts are checked in this browser each time fresh data loads.</p></div>' +
+      '<div class="banner"><strong>What works and what does not.</strong> Alerts run only while this page is open in a tab, because a free static site has no server to watch prices for you. Email alerts are not included for the same reason. Rules and history are kept in this browser only.</div>' +
+      '<div class="two"><section class="card"><div class="eyebrow">New alert</div><form id="rule-form" class="form-row" autocomplete="off">' +
+      '<label>Alert type<select id="rule-type"><option value="above">Price rises above</option><option value="below">Price falls below</option><option value="move">Sudden move within an hour</option></select></label>' +
+      '<label><span id="rule-unit">RM per gram</span><input id="rule-value" type="number" step="any" min="0" inputmode="decimal" required placeholder="e.g. 530"></label>' +
+      '<button class="btn" type="submit">Add alert</button></form>' +
+      (ticksOk ? '' : '<p class="sub">Sudden-move alerts need intraday price samples, which the deployed updater collects every 15 minutes. None are stored yet.</p>') + '</section>' +
+      '<section class="card"><div class="eyebrow">Notifications</div><p>' + esc(permText) + '</p><div class="form-row"><button class="btn ghost" data-act="notif" ' + (canNotify && perm !== 'denied' && perm !== 'granted' ? '' : 'disabled') + '>Turn on browser notifications</button></div>' +
+      '<label class="check"><input type="checkbox" id="daily" data-act="daily" ' + (A.daily ? 'checked' : '') + '> Daily market summary, once a day when this page is open</label></section></div>' +
+      '<section class="card"><div class="eyebrow">Your alerts</div>' + rules + '</section>' +
+      '<section class="card"><div class="eyebrow">Recent activity</div>' + log + '</section>';
+  }
+
+  /* ---------- charts ---------- */
+  var charts = {};
+  function killCharts() { Object.keys(charts).forEach(function (k) { try { charts[k].destroy(); } catch (e) {} delete charts[k]; }); }
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  function lineChart(id, rows, o) {
+    var cv = document.getElementById(id);
+    if (!cv) return;
+    if (typeof Chart === 'undefined') { cv.parentElement.innerHTML = '<div class="empty">The chart library could not load. Check your connection and reload.</div>'; return; }
+    var gold = css('--gold-deep'), grid = css('--line'), muted = css('--muted');
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var sets = [{
+      label: o.label, data: rows.map(function (r) { return r.v; }), borderColor: gold, borderWidth: 2.2, pointRadius: rows.length < 25 ? 3 : 0, pointBackgroundColor: gold,
+      pointHoverRadius: 5, pointHoverBackgroundColor: gold, pointHoverBorderColor: '#FFFDF8', pointHoverBorderWidth: 2, tension: 0.22, fill: true,
+      backgroundColor: function (c) {
+        var a = c.chart.chartArea;
+        if (!a) return 'rgba(201,170,107,.15)';
+        var g = c.chart.ctx.createLinearGradient(0, a.top, 0, a.bottom);
+        g.addColorStop(0, 'rgba(201,170,107,.40)'); g.addColorStop(1, 'rgba(201,170,107,0)');
+        return g;
+      }
+    }].concat(o.extra || []);
+    charts[id] = new Chart(cv, {
+      type: 'line',
+      data: { labels: rows.map(function (r) { return r.d; }), datasets: sets },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: { duration: reduce ? 0 : 350 }, interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: sets.length > 1, labels: { boxWidth: 10, usePointStyle: true, color: muted } },
+          tooltip: {
+            backgroundColor: '#2A2723', titleColor: '#FBF8F0', bodyColor: '#F4EEDF', padding: 11, cornerRadius: 10, displayColors: false,
+            callbacks: {
+              title: function (it) { return fmtDay(it[0].label); },
+              label: function (c) { return c.dataset.label + ': ' + o.fmt(c.parsed.y); },
+              afterBody: function (it) { return o.after ? o.after(rows[it[0].dataIndex], rows[0]) : []; }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: muted, maxTicksLimit: 6, maxRotation: 0, callback: function (v) { return shortDay(this.getLabelForValue(v)); } } },
+          y: { grid: { color: grid }, grace: '6%', ticks: { color: muted, callback: function (v) { return n2(v, o.dp); } } }
+        }
+      }
+    });
+  }
+  function drawCharts() {
+    killCharts();
+    var rows = series(), days = periodDays();
+    if (S.page === 'overview' && document.getElementById('chart-main')) {
+      var w = windowed(rows, days);
+      lineChart('chart-main', w, { label: 'RM per gram', dp: 0, fmt: function (v) { return rm(v); }, after: function (r, f) { var c = r.v - f.v; return [signed(c) + ' RM (' + signed((r.v / f.v - 1) * 100) + '%) vs ' + shortDay(f.d), 'US$' + n2(r.usd) + ' · USD/MYR ' + n2(r.fx, 4)]; } });
+    }
+    if (S.page === 'charts') {
+      if (document.getElementById('chart-big')) {
+        var w2 = windowed(rows, days), extra = [];
+        if (S.sma) {
+          [[20, '#2A2723'], [50, '#A9885A']].forEach(function (p) {
+            var all = sma(rows.map(function (r) { return r.v; }), p[0]), off = rows.length - w2.length;
+            extra.push({ label: p[0] + '-day average', data: all.slice(off), borderColor: p[1], borderWidth: 1.4, borderDash: [5, 4], pointRadius: 0, pointHoverRadius: 0, fill: false, tension: 0.22, spanGaps: false });
+          });
+        }
+        lineChart('chart-big', w2, { label: 'RM per gram', dp: 0, extra: extra, fmt: function (v) { return rm(v); }, after: function (r, f) { return [signed(r.v - f.v) + ' RM (' + signed((r.v / f.v - 1) * 100) + '%) vs ' + shortDay(f.d), 'US$' + n2(r.usd) + ' · USD/MYR ' + n2(r.fx, 4)]; } });
+      }
+      if (document.getElementById('chart-fx')) {
+        var fxr = windowed(((S.hist.fx && S.hist.fx.points) || []).map(function (p) { return { d: p.d, v: p.r }; }), days);
+        lineChart('chart-fx', fxr, { label: 'USD/MYR', dp: 3, fmt: function (v) { return n2(v, 4); }, after: function (r, f) { return [signed(r.v - f.v, 4) + ' (' + signed((r.v / f.v - 1) * 100) + '%) vs ' + shortDay(f.d)]; } });
+      }
+    }
+  }
+
+  /* ---------- render + events ---------- */
+  function render() {
+    var view = document.getElementById('view');
+    if (!S.loaded) { view.innerHTML = '<div class="empty">Loading market data…</div>'; return; }
+    var html = S.page === 'charts' ? pageCharts() : S.page === 'news' ? pageNews() : S.page === 'insights' ? pageInsights() : S.page === 'alerts' ? pageAlerts() : pageOverview();
+    view.innerHTML = html;
+    document.querySelectorAll('#nav a').forEach(function (a) { if (a.dataset.page === S.page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    try { drawCharts(); } catch (e) { console.error(e); }
+  }
+  function go(p) {
+    S.page = PAGES.indexOf(p) >= 0 ? p : 'overview';
+    try { history.replaceState(null, '', '#' + S.page); } catch (e) {}
+    render(); window.scrollTo(0, 0);
+  }
+  function setLayout(fn) { var L = layout(); fn(L); save('layout', L); render(); }
+
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('[data-page],[data-page-link]');
+    if (link && link.tagName === 'A') { e.preventDefault(); go(link.dataset.page || link.dataset.pageLink); return; }
+    var el = e.target.closest('[data-act]');
+    if (!el) return;
+    var act = el.dataset.act, id = el.dataset.id;
+    if (act === 'period') { S.period = el.dataset.v; render(); }
+    else if (act === 'topic') { S.topic = el.dataset.v; render(); }
+    else if (act === 'edit') { S.edit = !S.edit; render(); }
+    else if (act === 'reset') { save('layout', {}); render(); }
+    else if (act === 'hide') setLayout(function (L) { L.hidden.push(id); });
+    else if (act === 'show') setLayout(function (L) { L.hidden = L.hidden.filter(function (x) { return x !== id; }); });
+    else if (act === 'move') setLayout(function (L) {
+      var vis = L.order.filter(function (x) { return L.hidden.indexOf(x) < 0; }), i = vis.indexOf(id), j = i + Number(el.dataset.d);
+      if (j < 0 || j >= vis.length) return;
+      var a = L.order.indexOf(vis[i]), b = L.order.indexOf(vis[j]), t = L.order[a]; L.order[a] = L.order[b]; L.order[b] = t;
+    });
+    else if (act === 'rule-del') { var A = alertState(); A.rules = A.rules.filter(function (r) { return r.id !== id; }); save('alerts', A); render(); }
+    else if (act === 'log-clear') { var B = alertState(); B.log = []; save('alerts', B); render(); }
+    else if (act === 'notif') {
+      try { Notification.requestPermission().then(function () { render(); }, function () { render(); }); } catch (err) { toast('Notifications are not available here.'); }
+    }
+  });
+  document.addEventListener('change', function (e) {
+    var el = e.target;
+    if (el.id === 'sma-toggle') { S.sma = el.checked; render(); }
+    else if (el.dataset && el.dataset.act === 'rule-toggle') {
+      var A = alertState(); A.rules.forEach(function (r) { if (r.id === el.dataset.id) { r.on = el.checked; r.fired = false; } }); save('alerts', A); render(); checkAlerts();
+    } else if (el.id === 'daily') { var D = alertState(); D.daily = el.checked; save('alerts', D); render(); }
+    else if (el.id === 'rule-type') {
+      document.getElementById('rule-unit').textContent = el.value === 'move' ? 'Percent move' : 'RM per gram';
+      document.getElementById('rule-value').placeholder = el.value === 'move' ? 'e.g. 1' : 'e.g. 530';
+    }
+  });
+  document.addEventListener('submit', function (e) {
+    if (e.target.id !== 'rule-form') return;
+    e.preventDefault();
+    var type = document.getElementById('rule-type').value, v = Number(document.getElementById('rule-value').value);
+    if (!(v > 0)) { toast('Enter a number greater than zero.'); return; }
+    var A = alertState();
+    A.rules.push({ id: 'r' + Date.now().toString(36), type: type, value: v, on: true, fired: false });
+    save('alerts', A); render(); checkAlerts(); toast('Alert added.');
+  });
+  window.addEventListener('hashchange', function () {
+    var h = location.hash.replace('#', '');
+    if (PAGES.indexOf(h) >= 0 && h !== S.page) { S.page = h; render(); }
+  });
+
+  function refresh() {
+    var before = S.latest && S.latest.generatedAt;
+    return loadAll().then(function () {
+      checkAlerts();
+      var tag = document.activeElement && document.activeElement.tagName;
+      if (!S.loaded || (S.latest && S.latest.generatedAt !== before)) { if (tag !== 'INPUT' && tag !== 'SELECT') render(); }
+    });
+  }
+
+  var h0 = location.hash.replace('#', '');
+  if (PAGES.indexOf(h0) >= 0) S.page = h0;
+  render();
+  loadAll().then(function () { checkAlerts(); render(); });
+  setInterval(function () { refresh(); }, REFRESH_MS);
+})();
+</script>
+
+</body></html>

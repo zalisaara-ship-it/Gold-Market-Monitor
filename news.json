@@ -1,0 +1,30 @@
+{
+ "fetchedAt": "2026-10-26T06:45:00Z",
+ "source": "Three articles read in full on 26 Oct 2026. The scheduled updater replaces this list with a live feed.",
+ "items": [
+  {
+   "title": "Gold Falls Below $4,000 as Market Focuses on Fed and September PCE After Consecutive Adjustments",
+   "publisher": "TradingKey",
+   "publishedDate": "2026-10-26",
+   "url": "https://www.tradingkey.com/analysis/commodities/metal/262238288-gold-below-4000-adjustments-fed-september-pce-focus-tradingkey",
+   "summary": "Spot gold slipped under $4,000 after its biggest weekly drop since June. The article points to roughly 78% odds of another Fed hike in December (CME FedWatch), oil-linked inflation worries, and forced selling. The Fed meets 27 to 28 October and September PCE is due 29 October.",
+   "topics": ["gold", "fed", "inflation"]
+  },
+  {
+   "title": "Gold steadies near one-week low as oil-driven inflation fears grow",
+   "publisher": "Reuters via Kitco News",
+   "publishedDate": "2026-10-21",
+   "url": "https://www.kitco.com/news/off-the-wire/2026-10-21/gold-steadies-near-one-week-low-oil-driven-inflation-fears-grow",
+   "summary": "Higher oil prices tied to Middle East tensions revived inflation worries and pushed traders toward expecting Fed rate hikes, which weighs on gold because it pays no interest.",
+   "topics": ["gold", "fed", "inflation", "geopolitics"]
+  },
+  {
+   "title": "Ringgit Forecast Revised To 4.00 As Geopolitical Risks Persist",
+   "publisher": "Business Today",
+   "publishedAt": "2026-10-03T11:35:24+08:00",
+   "url": "https://www.businesstoday.com.my/2026/10/03/ringgit-forecast-revised-to-4-00-as-geopolitical-risks-persist/",
+   "summary": "Kenanga Research now expects the ringgit at RM4.00 per US dollar by end-2026 (previously RM3.95), citing a stronger dollar, higher US yields and geopolitical tension. It expects one more Fed hike late this year.",
+   "topics": ["myr", "fed", "geopolitics"]
+  }
+ ]
+}

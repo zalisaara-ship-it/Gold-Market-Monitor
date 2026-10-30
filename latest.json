@@ -1,0 +1,26 @@
+{
+ "mode": "snapshot",
+ "generatedAt": "2026-10-26T06:45:00Z",
+ "note": "Hand-verified snapshot from pages read on 26 Oct 2026. The scheduled updater replaces this file with automatic data once it is deployed.",
+ "gold": {
+  "usdPerOz": 3999.92,
+  "prevUsdPerOz": 3993.81,
+  "changeBasis": "the price 24 hours earlier (+US$6.11 per MetalCharts)",
+  "changeLabel": "over 24 hours",
+  "asOf": "2026-10-25",
+  "asOfPrecision": "date",
+  "source": "MetalCharts spot gold page",
+  "sourceUrl": "https://metalcharts.org/gold-price",
+  "status": "last-available",
+  "delayNote": "snapshot, not refreshing"
+ },
+ "fx": {
+  "usdMyr": 4.0848,
+  "prev": 4.0823,
+  "asOf": "2026-10-23",
+  "source": "Bank Negara Malaysia noon interbank rate, as listed by money.com.my",
+  "sourceUrl": "https://money.com.my/tools/exchange-rate/usd-to-myr",
+  "basis": "previous fixing (22 Oct)"
+ },
+ "errors": []
+}
